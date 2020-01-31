@@ -9,18 +9,12 @@ impl Point {
     pub fn new(x: u8, y: u8) -> Point {
         Point { x, y }
     }
-    pub fn new_rand(
-        x_min: u8,
-        x_max: u8,
-        y_min: u8,
-        y_max: u8,
-        occupied_points: &Vec<Point>,
-    ) -> Point {
+    pub fn new_random(min: Point, max: Point, occupied_points: &Vec<Point>) -> Point {
         let mut rng = thread_rng();
 
-        let new_position = Point::new(rng.gen_range(x_min, x_max), rng.gen_range(y_min, y_max));
+        let new_position = Point::new(rng.gen_range(min.x, max.x), rng.gen_range(min.y, max.y));
         if occupied_points.iter().any(|point| new_position == *point) {
-            return Point::new_rand(x_min, x_max, y_min, y_max, occupied_points);
+            return Point::new_random(min, max, occupied_points);
         } else {
             return new_position;
         }

@@ -22,52 +22,71 @@ impl GameCycleController {
             is_game_running: true,
         }
     }
+    pub fn run_input_logic(&mut self) -> Result<(), ()> {
+        match self.terminal.get_input() {
+            Some(Input::Character(c)) if c == ESC_KEY => Err(()),
+            Some(input) => {
+                self.board.on_input(input);
+                self.has_first_input_happened = true;
+                if self.is_game_running {
+                    Ok(())
+                } else {
+                    Err(())
+                }
+            }
+            _ => Ok(()),
+        }
+    }
+    pub fn run_running_game_frame(&mut self) -> Result<(), ()> {
+        match self.board.on_frame(()) {
+            Ok(_) => match self.terminal.on_frame((&self.board,)) {
+                Ok(_) => Ok(()),
+                Err(_) => Ok(()),
+            },
+            Err(_) => {
+                self.board.hide_snake = !self.board.hide_snake;
+                self.terminal.on_game_over(&self.board);
+                self.is_game_running = false;
+                Err(())
+            }
+        }
+    }
+    pub fn run_ended_game_frame(&mut self) {
+        self.board.hide_snake = !self.board.hide_snake;
+        self.terminal.on_game_over(&self.board);
+    }
     pub fn start(&mut self) {
-        let GameCycleController {
-            terminal, board, ..
-        } = self;
         let start_instant = Instant::now();
-        let mut prev_frame_time = 0;
+        let mut prev_frame_delta_time = 0;
 
-        terminal.setup();
-        terminal.draw(&board);
+        self.terminal.setup();
+        self.terminal.draw(&self.board);
 
         loop {
-            match terminal.get_input() {
-                Some(Input::Character(c)) if c == ESC_KEY => break,
-                Some(input) => {
-                    board.on_input(input);
-                    self.has_first_input_happened = true;
-                    if !self.is_game_running {
-                        break;
-                    }
-                }
-                _ => (),
-            };
+            let delta_time = start_instant.elapsed().as_millis();
 
-            let run_time = start_instant.elapsed().as_millis();
+            match self.run_input_logic() {
+                Ok(_) => (),
+                Err(_) => break,
+            }
+
             let is_time_for_frame =
-                prev_frame_time == 0 || run_time - prev_frame_time >= FRAME_TIME;
+                prev_frame_delta_time == 0 || delta_time - prev_frame_delta_time >= FRAME_TIME;
+
             if is_time_for_frame && self.has_first_input_happened {
-                prev_frame_time = run_time;
+                prev_frame_delta_time = delta_time;
+
                 if self.is_game_running {
-                    match board.on_frame(()) {
-                        Ok(_) => match terminal.on_frame((&board,)) {
-                            _ => (),
-                        },
-                        Err(_) => {
-                            board.hide_snake = !board.hide_snake;
-                            terminal.on_game_over(&board);
-                            self.is_game_running = false;
-                        }
+                    match self.run_running_game_frame() {
+                        Ok(_) => (),
+                        Err(()) => (),
                     }
                 } else {
-                    board.hide_snake = !board.hide_snake;
-                    terminal.on_game_over(&board);
+                    self.run_ended_game_frame();
                 }
             }
         }
 
-        terminal.end();
+        self.terminal.end();
     }
 }

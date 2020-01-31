@@ -29,5 +29,6 @@ fn main() {
     let board = Board::new(20, 10, initial_snake, initial_food);
     let terminal = Terminal::new(initscr());
     let mut game_cycle_controller = GameCycleController::new(board, terminal);
+
     game_cycle_controller.start();
 }

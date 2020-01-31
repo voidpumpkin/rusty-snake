@@ -26,8 +26,8 @@ impl GameCycle<BoardProps> for Board {
         self.snake.on_frame((&food_points, &wall_points))?;
         self.food.on_frame((
             snake_head_point,
-            self.width,
-            self.height,
+            self.get_playable_width(),
+            self.get_playable_height(),
             self.snake.get_points(),
         ))?;
         Ok(())
@@ -48,15 +48,21 @@ impl Board {
             hide_snake: false,
         }
     }
+    pub fn get_playable_width(&self) -> u8 {
+        self.width - 1
+    }
+    pub fn get_playable_height(&self) -> u8 {
+        self.height - 1
+    }
     pub fn get_wall_points(&self) -> Vec<Point> {
         let mut walls: Vec<Point> = vec![];
-        for i in 0..self.width {
-            walls.push(Point::new(i, 0));
-            walls.push(Point::new(i, self.height));
+        for x in 0..self.get_playable_width() {
+            walls.push(Point::new(x, 0));
+            walls.push(Point::new(x, self.get_playable_height()));
         }
-        for i in 0..self.height {
-            walls.push(Point::new(0, i));
-            walls.push(Point::new(self.width, i));
+        for y in 0..self.get_playable_height() {
+            walls.push(Point::new(0, y));
+            walls.push(Point::new(self.get_playable_width(), y));
         }
         walls
     }
