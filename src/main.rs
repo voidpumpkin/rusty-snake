@@ -1,5 +1,6 @@
-extern crate pancurses;
-extern crate rand;
+//New rust versions do not require externs
+// extern crate pancurses;
+// extern crate rand;
 
 mod board;
 mod direction;
