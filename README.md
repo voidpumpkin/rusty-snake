@@ -4,4 +4,4 @@
 
 ### First rust project. It was fun!
 
-![Image of this game running](https://i.postimg.cc/T1234svz/image.png)
+![Image of this game running](snake.gif)
